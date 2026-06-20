@@ -1,3 +1,6 @@
+.astro
+.vscode
+
 # Logs
 logs
 *.log

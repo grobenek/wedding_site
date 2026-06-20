@@ -1,0 +1,44 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Ďakujeme · Svadba">
+  <div class="page thanks-page">
+    <div class="thanks-icon" aria-hidden="true">✦</div>
+    <h1 class="display thanks-heading">Ďakujeme</h1>
+    <hr class="rule thanks-rule" />
+    <p class="thanks-text">
+      Vaša odpoveď bola odoslaná. Tešíme sa na Vás!
+    </p>
+    <a href="/" class="btn">Späť na úvod</a>
+  </div>
+</Layout>
+
+<style>
+  .thanks-page {
+    text-align: center;
+    padding-top: var(--s-24);
+  }
+
+  .thanks-icon {
+    font-size: 2rem;
+    color: var(--c-accent);
+    margin-bottom: var(--s-6);
+  }
+
+  .thanks-heading {
+    font-size: var(--t-3xl);
+    margin-bottom: var(--s-4);
+  }
+
+  .thanks-rule {
+    width: 3rem;
+    margin: 0 auto var(--s-6);
+  }
+
+  .thanks-text {
+    color: var(--c-muted);
+    margin-bottom: var(--s-12);
+    font-size: var(--t-lg);
+  }
+</style>

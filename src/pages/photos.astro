@@ -1,0 +1,128 @@
+---
+// ============================================================
+// TODO: Fill these in before activating the photos page
+// 1. PHOTOS_URL  — your Google Photos shared album link
+// 2. PASSWORD    — something guests will know. Keep it simple.
+//    Good options: wedding date as "12092026", a pet's name,
+//    the venue name in lowercase. Tell guests in the invite.
+// 3. Uncomment the nav link in Layout.astro
+// ============================================================
+import '../styles/global.css';
+
+const PHOTOS_URL = 'https://photos.google.com/share/YOUR_ALBUM_ID';
+const PASSWORD   = 'svadba2026';  // TODO: change this
+---
+
+<html lang="sk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Fotky · Svadba</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,300&family=Figtree:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="/styles/global.css" />
+</head>
+<body>
+  <!-- PASSWORD GATE — shown by default -->
+  <div class="gate" id="gate">
+    <p class="label" style="margin-bottom: 1rem;">Súkromný album</p>
+    <h1 class="gate-heading display">Fotky</h1>
+    <p>Zadajte heslo zo svadobného oznámenia</p>
+
+    <div class="gate-input-row">
+      <input
+        type="password"
+        id="password-input"
+        autocomplete="off"
+        autocapitalize="none"
+        placeholder="heslo"
+        aria-label="Heslo"
+      />
+      <button class="btn btn--primary" id="unlock-btn">Otvoriť</button>
+    </div>
+    <p class="gate-error" id="gate-error" hidden>Nesprávne heslo. Skúste znovu.</p>
+  </div>
+
+  <!-- CONTENT — hidden until correct password entered -->
+  <div class="page photos-content" id="photos-content" hidden>
+    <p class="label">Spomienky</p>
+    <h1 class="page-title">Fotky zo svadby</h1>
+    <p class="photos-intro">
+      Zdieľajte vaše fotky priamo do nášho albumu. Každá fotka je pre nás darom.
+    </p>
+    <a href={PHOTOS_URL} target="_blank" rel="noopener noreferrer" class="btn btn--primary photos-cta">
+      Otvoriť album →
+    </a>
+    <p class="photos-note">
+      Odkaz Vás presmeruje na Google Fotky, kde môžete prezerať 
+      aj pridávať fotografie.
+    </p>
+  </div>
+</body>
+</html>
+
+<script is:inline define:vars={{ password: PASSWORD }}>
+  const SESSION_KEY = 'photos_auth';
+
+  const gate     = document.getElementById('gate');
+  const content  = document.getElementById('photos-content');
+  const input    = document.getElementById('password-input');
+  const btn      = document.getElementById('unlock-btn');
+  const errorMsg = document.getElementById('gate-error');
+
+  function unlock() {
+    gate.hidden    = true;
+    content.hidden = false;
+    sessionStorage.setItem(SESSION_KEY, password);
+  }
+
+  // Already authenticated this browser session
+  if (sessionStorage.getItem(SESSION_KEY) === password) {
+    unlock();
+  }
+
+  function tryPassword() {
+    if (input.value.trim().toLowerCase() === password.toLowerCase()) {
+      unlock();
+    } else {
+      errorMsg.hidden = false;
+      input.value = '';
+      input.focus();
+    }
+  }
+
+  btn.addEventListener('click', tryPassword);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') tryPassword();
+  });
+</script>
+
+<style>
+  .gate-heading {
+    font-size: var(--t-3xl);
+    margin-bottom: var(--s-4);
+  }
+
+  .photos-intro {
+    color: var(--c-muted);
+    margin-bottom: var(--s-8);
+    line-height: 1.7;
+  }
+
+  .photos-cta {
+    display: inline-block;
+    margin-bottom: var(--s-6);
+  }
+
+  .photos-note {
+    font-size: var(--t-sm);
+    color: var(--c-muted);
+    max-width: 420px;
+    line-height: 1.6;
+  }
+</style>

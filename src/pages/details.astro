@@ -1,0 +1,126 @@
+---
+// ============================================================
+// TODO: Fill in your event details
+// ============================================================
+import Layout from '../layouts/Layout.astro';
+
+const details = {
+  ceremony: {
+    time:     '16:00',
+    location: 'Park Poltár',
+    address:  'KPU, Poltár',
+    note:     'Prosíme o príchod minimálne 15 minút pred obradom.',
+  },
+  reception: {
+    time:     '17:00',
+    location: 'KPU Poltár',
+    address:  'KPU Poltár',
+    note:     'Raut a slávnostná večera. Ubytovanie na mieste k dispozícii.',
+  },
+  contact: {
+    name:  'Svadba Erika a Peter',
+    email: 'peter.szathmary@szathmary.sk',
+  },
+};
+---
+
+<Layout title="Informácie · Svadba">
+  <div class="page">
+    <p class="label">Deň svadby</p>
+    <h1 class="page-title">Informácie</h1>
+
+    <div class="details-grid">
+      <!-- Ceremony -->
+      <div class="detail-block">
+        <p class="label">Obrad</p>
+        <h2 class="detail-block__title">{details.ceremony.location}</h2>
+        <p class="detail-time">{details.ceremony.time}</p>
+        <p>{details.ceremony.address}</p>
+        <p>{details.ceremony.note}</p>
+      </div>
+
+      <!-- Reception -->
+      <div class="detail-block">
+        <p class="label">Hostina</p>
+        <h2 class="detail-block__title">{details.reception.location}</h2>
+        <p class="detail-time">{details.reception.time}</p>
+        <p>{details.reception.address}</p>
+        <p>{details.reception.note}</p>
+      </div>
+    </div>
+
+    <hr class="rule section-rule" />
+
+    <!-- Accommodation -->
+    <section class="accommodation">
+      <p class="label">Ubytovanie</p>
+      <h2 class="accommodation-title display">Zostanete cez noc?</h2>
+      <p>
+        K dispozícii máme ubytovanie minútu chôdze od KPU. Ak máte záujem, 
+        uveďte to prosím vo svojom RSVP — všetko je zabezpečené :).
+      </p>
+    </section>
+
+    <hr class="rule section-rule" />
+
+    <!-- Contact -->
+    <section class="contact">
+      <p class="label">Kontakt</p>
+      <p>
+        V prípade otázok nás kontaktujte na
+        <a href={`mailto:${details.contact.email}`} class="email-link">
+          {details.contact.email}
+        </a>
+      </p>
+    </section>
+  </div>
+</Layout>
+
+<style>
+  .detail-block__title {
+    font-family: var(--f-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: var(--t-2xl);
+    margin: var(--s-2) 0 var(--s-2);
+  }
+
+  .detail-time {
+    font-family: var(--f-display);
+    font-style: italic;
+    font-size: var(--t-xl);
+    color: var(--c-accent);
+    margin-bottom: var(--s-2);
+  }
+
+  .detail-block p {
+    color: var(--c-muted);
+    margin-bottom: var(--s-1);
+    line-height: 1.7;
+  }
+
+  .section-rule {
+    margin: var(--s-12) 0;
+  }
+
+  .accommodation {
+    margin-bottom: var(--s-4);
+  }
+
+  .accommodation-title {
+    font-size: var(--t-3xl);
+    margin: var(--s-2) 0 var(--s-4);
+  }
+
+  .accommodation p,
+  .contact p {
+    color: var(--c-muted);
+    line-height: 1.7;
+  }
+
+  .email-link {
+    color: var(--c-accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

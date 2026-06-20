@@ -1,11 +1,121 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+// ============================================================
+// TODO: Fill in your details
+// ============================================================
+const COUPLE_A   = 'Erika';
+const COUPLE_B   = 'Peter';
+const DATE_FULL  = '15. mája 2027';
+const DAY_NAME   = 'Sobota';
+const LOCATION   = 'KPU, Poltár, Slovensko';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout>
-	<Welcome />
+  <div class="hero">
+    <div class="hero-content">
+      <p class="label">Pozývame Vás na svadbu</p>
+
+      <h1 class="hero-names display">
+        {COUPLE_A}<br />
+        <span class="ampersand">&amp;</span><br />
+        {COUPLE_B}
+      </h1>
+
+      <hr class="rule hero-rule" />
+
+      <div class="hero-date">
+        <span class="label">{DAY_NAME}</span>
+        <p class="date-text">{DATE_FULL}</p>
+        <p class="location-text">{LOCATION}</p>
+      </div>
+
+      <div class="hero-actions">
+        <a href="/rsvp" class="btn btn--primary">Potvrdiť účasť</a>
+        <a href="/details" class="btn">Informácie</a>
+      </div>
+    </div>
+  </div>
 </Layout>
+
+<style>
+    .hero {
+    position: relative;
+    min-height: 100%;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 2rem;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    max-width: 560px;
+  }
+
+  .hero-content .label {
+    margin-bottom: var(--s-8);
+  }
+
+  .hero-names {
+    font-size: var(--t-hero);
+    line-height: 1.05;
+    margin-bottom: var(--s-6);
+  }
+
+  .ampersand {
+    font-size: 0.65em;
+    color: var(--c-accent);
+    display: inline-block;
+    margin: var(--s-1) 0;
+  }
+
+  .hero-rule {
+    margin: var(--s-6) auto;
+    width: 4rem;
+  }
+
+  .hero-date {
+    margin-bottom: var(--s-12);
+  }
+
+  .hero-date .label {
+    margin-bottom: var(--s-2);
+  }
+
+  .date-text {
+    font-family: var(--f-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: var(--t-2xl);
+    margin-bottom: var(--s-2);
+  }
+
+  .location-text {
+    color: var(--c-muted);
+    font-size: var(--t-sm);
+    letter-spacing: 0.06em;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: var(--s-4);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 600px) {
+    .hero {
+      align-items: flex-start;
+      padding-top: var(--s-12);
+    }
+
+    .hero-watermark {
+      font-size: 60vw;
+    }
+  }
+</style>

@@ -1,0 +1,254 @@
+---
+// ============================================================
+// Web3Forms access key — public by design, safe to hardcode.
+// ============================================================
+const WEB3FORMS_KEY = 'e0cfa643-75e6-49db-8505-df89ccff1f2f';
+
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="RSVP · Svadba">
+  <div class="page">
+    <p class="label">Potvrdiť účasť</p>
+    <h1 class="page-title">RSVP</h1>
+
+    <p class="rsvp-intro">
+      Prosíme o potvrdenie Vašej účasti do <strong>1. februára 2026</strong>.
+    </p>
+
+    <form id="rsvp-form" novalidate>
+      <!-- Web3Forms required field -->
+      <input type="hidden" name="access_key" value={WEB3FORMS_KEY} />
+
+      <!-- Optional but recommended: custom subject line for notification emails -->
+      <input type="hidden" name="subject" value="Nová RSVP odpoveď svadba" />
+
+      <!-- Honeypot spam trap (Web3Forms convention: must be named exactly this) -->
+      <input type="checkbox" name="botcheck" id="botcheck" style="display: none;" />
+
+      <!-- Email from value -->
+      <input type="hidden" name="from_name" value="Svadobný organizátor">
+
+      <!-- Hidden: tracking token from QR code -->
+      <input type="hidden" name="token" id="token" value="direct" />
+
+      <!-- Name -->
+      <div class="field">
+        <label for="name">Vaše meno</label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          required
+          autocomplete="name"
+          placeholder="Jana Nováková"
+        />
+      </div>
+
+      <!-- Attending -->
+      <fieldset class="field">
+        <legend class="field-legend">Zúčastníte sa?</legend>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" name="attending" value="yes" required />
+            Áno, prídem s radosťou
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="attending" value="no" />
+            Ľutujem, nemôžem sa zúčastniť
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- +1 — shown only if QR code has p=1 -->
+      <div class="field conditional" id="plus-one-field" hidden>
+        <fieldset>
+          <legend class="field-legend">Prídete s partnerom / partnerkou?</legend>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="plus_one" value="yes" />
+              Áno
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="plus_one" value="no" />
+              Nie
+            </label>
+          </div>
+        </fieldset>
+      </div>
+
+      <!-- Night stay — shown only if QR code has n=1 AND attending = yes -->
+      <div class="field conditional" id="night-field" hidden>
+        <fieldset>
+          <legend class="field-legend">Zostanete cez noc?</legend>
+          <p class="field-hint">Ubytovanie je k dispozícii priamo na mieste</p>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="night" value="yes" />
+              Áno, zostanem cez noc
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="night" value="no" />
+              Nie, ďakujem
+            </label>
+          </div>
+        </fieldset>
+      </div>
+
+      <!-- Optional message -->
+      <div class="field">
+        <label for="message">Správa <span class="optional">(voliteľné)</span></label>
+        <textarea
+          id="message"
+          name="message"
+          rows="3"
+          placeholder="Tešíme sa na Vás..."
+        ></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn--primary" id="submit-btn">
+          Potvrdiť
+        </button>
+      </div>
+
+      <p class="form-error" id="form-error" hidden>
+        Nastala chyba. Skúste to prosím znovu, alebo nás kontaktujte priamo.
+      </p>
+    </form>
+  </div>
+</Layout>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+
+    // ── Pre-fill from QR code URL ──────────────────────────
+    const tokenInput = document.getElementById('token');
+    const nameInput  = document.getElementById('name');
+    const form       = document.getElementById('rsvp-form');
+
+    tokenInput.value = params.get('id') || 'direct';
+    const rawName = params.get('name');
+    if (rawName) nameInput.value = decodeURIComponent(rawName);
+
+    // Strictly check for "1"
+    const allowPlusOne = params.get('p') === '1';
+    const allowNight   = params.get('n') === '1';
+
+    const plusOneField = document.getElementById('plus-one-field');
+    const nightField   = document.getElementById('night-field');
+
+    // ── Show/hide conditional fields based on attending ────
+    function updateConditionalFields() {
+      const checkedAttending = form.querySelector('input[name="attending"]:checked');
+      const isYes = checkedAttending ? checkedAttending.value === 'yes' : false;
+
+      // Only show if BOTH the URL parameter is true AND they selected "Yes"
+      plusOneField.hidden = !(allowPlusOne && isYes);
+      nightField.hidden   = !(allowNight && isYes);
+
+      // Clear sub-selections when hiding
+      if (!isYes) {
+        plusOneField.querySelectorAll('input').forEach(i => i.checked = false);
+        nightField.querySelectorAll('input').forEach(i => i.checked = false);
+      }
+    }
+
+    const attendingRadios = document.querySelectorAll('input[name="attending"]');
+    attendingRadios.forEach(radio => {
+      radio.addEventListener('change', updateConditionalFields);
+    });
+
+    // Run once on load in case the browser auto-filled the radio buttons
+    updateConditionalFields();
+
+    // ── Form submission via fetch (no page redirect on POST) ─
+    const submitBtn = document.getElementById('submit-btn');
+    const errorMsg  = document.getElementById('form-error');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name      = document.getElementById('name').value.trim();
+      const attending = form.querySelector('input[name="attending"]:checked');
+
+      if (!name || !attending) return;
+
+      submitBtn.disabled    = true;
+      submitBtn.textContent = 'Odosielam…';
+      errorMsg.hidden       = true;
+
+      try {
+        const formData = new FormData(form);
+        const object   = Object.fromEntries(formData);
+        const json     = JSON.stringify(object);
+
+        const res = await fetch('https://api.web3forms.com/submit', {
+          method:  'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept:         'application/json',
+          },
+          body: json,
+        });
+
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+          window.location.href = '/rsvp/thanks';
+        } else {
+          throw new Error(result.message || 'Server error');
+        }
+      } catch {
+        submitBtn.disabled    = false;
+        submitBtn.textContent = 'Potvrdiť';
+        errorMsg.hidden       = false;
+      }
+    });
+  });
+</script>
+
+<style>
+  .rsvp-intro {
+    color: var(--c-muted);
+    margin-bottom: var(--s-12);
+    line-height: 1.7;
+  }
+
+  .field-hint {
+    font-size: var(--t-sm);
+    color: var(--c-muted);
+    margin-bottom: var(--s-3);
+  }
+
+  .optional {
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--c-muted);
+    font-size: var(--t-xs);
+  }
+
+  .form-actions {
+    margin-top: var(--s-8);
+  }
+
+  /* Smooth reveal for conditional fields */
+  .conditional {
+    overflow: hidden;
+  }
+
+  .conditional[hidden] {
+    display: none !important;
+  }
+
+  .conditional:not([hidden]) {
+    animation: reveal 0.2s ease;
+  }
+
+  @keyframes reveal {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
