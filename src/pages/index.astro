@@ -1,14 +1,5 @@
 ---
-// ============================================================
-// TODO: Fill in your details
-// ============================================================
-const COUPLE_A   = 'Erika';
-const COUPLE_B   = 'Peter';
-const DATE_FULL  = '15. mája 2027';
-const DAY_NAME   = 'Sobota';
-const LOCATION   = 'KPU, Poltár, Slovensko';
-
-const DATE_ISO   = '2027-05-15T14:00:00';
+import { COUPLE_A, COUPLE_B, DATE_FULL, DAY_NAME, LOCATION, DATE_ISO } from '../data/wedding.js';
 
 import Layout from '../layouts/Layout.astro';
 ---
@@ -29,7 +20,6 @@ import Layout from '../layouts/Layout.astro';
         <p class="location-text">{LOCATION}</p>
       </div>
 
-      <!-- Countdown -->
       <div class="countdown" id="countdown" data-date={DATE_ISO}>
         <div class="countdown-unit">
           <span class="countdown-number" id="cd-days">–</span>
@@ -59,10 +49,10 @@ import Layout from '../layouts/Layout.astro';
 
 <script is:inline>
   document.addEventListener('DOMContentLoaded', () => {
-    const element = document.getElementById('countdown');
-    if (!element) return;
+    const el = document.getElementById('countdown');
+    if (!el) return;
 
-    const target = new Date(element.dataset.date).getTime();
+    const target = new Date(el.dataset.date).getTime();
 
     const daysEl    = document.getElementById('cd-days');
     const hoursEl   = document.getElementById('cd-hours');
@@ -74,7 +64,7 @@ import Layout from '../layouts/Layout.astro';
       const diff = target - now;
 
       if (diff <= 0) {
-        element.outerHTML = '<p class="countdown-done">Dnes je ten deň! 🎉</p>';
+        el.outerHTML = '<p class="countdown-done">Dnes je ten deň! 🎉</p>';
         clearInterval(timer);
         return;
       }
@@ -148,8 +138,6 @@ import Layout from '../layouts/Layout.astro';
     font-size: var(--t-sm);
     letter-spacing: 0.06em;
   }
-
-  /* ── Countdown ────────────────────────────────────────── */
   .countdown {
     display: flex;
     justify-content: center;

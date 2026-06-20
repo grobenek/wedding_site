@@ -1,8 +1,6 @@
 ---
-// ============================================================
-// TODO: Fill in your event details
-// ============================================================
 import Layout from '../layouts/Layout.astro';
+import { DATE_FULL } from '../data/wedding.js';
 
 const details = {
   ceremony: {
@@ -23,11 +21,14 @@ const details = {
   },
 };
 ---
-
 <Layout title="Informácie · Svadba">
   <div class="page">
-    <p class="label">Deň svadby</p>
     <h1 class="page-title">Informácie</h1>
+
+    <div class="page-date-row">
+      <p class="label">Deň svadby</p>
+      <p class="page-date">{DATE_FULL}</p>
+    </div>
 
     <div class="details-grid">
       <!-- Ceremony -->
@@ -38,7 +39,6 @@ const details = {
         <p>{details.ceremony.address}</p>
         <p>{details.ceremony.note}</p>
       </div>
-
       <!-- Reception -->
       <div class="detail-block">
         <p class="label">Hostina</p>
@@ -56,8 +56,8 @@ const details = {
       <p class="label">Ubytovanie</p>
       <h2 class="accommodation-title display">Zostanete cez noc?</h2>
       <p>
-        K dispozícii máme ubytovanie minútu chôdze od KPU. Ak máte záujem, 
-        uveďte to prosím vo svojom RSVP — všetko je zabezpečené :).
+        Priamo na mieste je k dispozícii ubytovanie. Ak máte záujem,
+        uveďte to prosím vo svojom RSVP — postaráme sa o Vás.
       </p>
     </section>
 
@@ -77,6 +77,25 @@ const details = {
 </Layout>
 
 <style>
+  .page-title {
+    margin-bottom: var(--s-2) !important;
+  }
+
+  .page-date-row {
+    margin-bottom: var(--s-12);
+  }
+
+  .page-date-row .label {
+    margin-bottom: var(--s-1);
+  }
+
+  .page-date {
+    font-family: var(--f-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: var(--t-3xl);
+}
+
   .detail-block__title {
     font-family: var(--f-display);
     font-style: italic;
