@@ -8,6 +8,8 @@ const DATE_FULL  = '15. mája 2027';
 const DAY_NAME   = 'Sobota';
 const LOCATION   = 'KPU, Poltár, Slovensko';
 
+const DATE_ISO   = '2027-05-15T14:00:00';
+
 import Layout from '../layouts/Layout.astro';
 ---
 
@@ -15,19 +17,36 @@ import Layout from '../layouts/Layout.astro';
   <div class="hero">
     <div class="hero-content">
       <p class="label">Pozývame Vás na svadbu</p>
-
       <h1 class="hero-names display">
         {COUPLE_A}<br />
         <span class="ampersand">&amp;</span><br />
         {COUPLE_B}
       </h1>
-
       <hr class="rule hero-rule" />
-
       <div class="hero-date">
         <span class="label">{DAY_NAME}</span>
         <p class="date-text">{DATE_FULL}</p>
         <p class="location-text">{LOCATION}</p>
+      </div>
+
+      <!-- Countdown -->
+      <div class="countdown" id="countdown" data-date={DATE_ISO}>
+        <div class="countdown-unit">
+          <span class="countdown-number" id="cd-days">–</span>
+          <span class="countdown-label">dní</span>
+        </div>
+        <div class="countdown-unit">
+          <span class="countdown-number" id="cd-hours">–</span>
+          <span class="countdown-label">hod</span>
+        </div>
+        <div class="countdown-unit">
+          <span class="countdown-number" id="cd-minutes">–</span>
+          <span class="countdown-label">min</span>
+        </div>
+        <div class="countdown-unit">
+          <span class="countdown-number" id="cd-seconds">–</span>
+          <span class="countdown-label">sek</span>
+        </div>
       </div>
 
       <div class="hero-actions">
@@ -37,6 +56,44 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </div>
 </Layout>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', () => {
+    const element = document.getElementById('countdown');
+    if (!element) return;
+
+    const target = new Date(element.dataset.date).getTime();
+
+    const daysEl    = document.getElementById('cd-days');
+    const hoursEl   = document.getElementById('cd-hours');
+    const minutesEl = document.getElementById('cd-minutes');
+    const secondsEl = document.getElementById('cd-seconds');
+
+    function tick() {
+      const now  = Date.now();
+      const diff = target - now;
+
+      if (diff <= 0) {
+        element.outerHTML = '<p class="countdown-done">Dnes je ten deň! 🎉</p>';
+        clearInterval(timer);
+        return;
+      }
+
+      const days    = Math.floor(diff / 86400000);
+      const hours   = Math.floor((diff % 86400000) / 3600000);
+      const minutes = Math.floor((diff % 3600000) / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
+
+      daysEl.textContent    = days;
+      hoursEl.textContent   = String(hours).padStart(2, '0');
+      minutesEl.textContent = String(minutes).padStart(2, '0');
+      secondsEl.textContent = String(seconds).padStart(2, '0');
+    }
+
+    tick();
+    const timer = setInterval(tick, 1000);
+  });
+</script>
 
 <style>
     .hero {
@@ -49,44 +106,36 @@ import Layout from '../layouts/Layout.astro';
     overflow: hidden;
     padding: 2rem;
   }
-
   .hero-content {
     position: relative;
     z-index: 1;
     text-align: center;
     max-width: 560px;
   }
-
   .hero-content .label {
     margin-bottom: var(--s-8);
   }
-
   .hero-names {
     font-size: var(--t-hero);
     line-height: 1.05;
     margin-bottom: var(--s-6);
   }
-
   .ampersand {
     font-size: 0.65em;
     color: var(--c-accent);
     display: inline-block;
     margin: var(--s-1) 0;
   }
-
   .hero-rule {
     margin: var(--s-6) auto;
     width: 4rem;
   }
-
   .hero-date {
-    margin-bottom: var(--s-12);
+    margin-bottom: var(--s-8);
   }
-
   .hero-date .label {
     margin-bottom: var(--s-2);
   }
-
   .date-text {
     font-family: var(--f-display);
     font-style: italic;
@@ -94,11 +143,56 @@ import Layout from '../layouts/Layout.astro';
     font-size: var(--t-2xl);
     margin-bottom: var(--s-2);
   }
-
   .location-text {
     color: var(--c-muted);
     font-size: var(--t-sm);
     letter-spacing: 0.06em;
+  }
+
+  /* ── Countdown ────────────────────────────────────────── */
+  .countdown {
+    display: flex;
+    justify-content: center;
+    gap: var(--s-6);
+    margin-bottom: var(--s-12);
+    padding-top: var(--s-6);
+    border-top: 1px solid var(--c-rule);
+  }
+
+  .countdown-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 3.25rem;
+  }
+
+  .countdown-number {
+    font-family: var(--f-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: var(--t-2xl);
+    color: var(--c-text);
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .countdown-label {
+    font-size: var(--t-xs);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--c-muted);
+    margin-top: var(--s-1);
+  }
+
+  .countdown-done {
+    font-family: var(--f-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: var(--t-2xl);
+    color: var(--c-accent);
+    margin-bottom: var(--s-12);
+    padding-top: var(--s-6);
+    border-top: 1px solid var(--c-rule);
   }
 
   .hero-actions {
@@ -107,15 +201,22 @@ import Layout from '../layouts/Layout.astro';
     justify-content: center;
     flex-wrap: wrap;
   }
-
   @media (max-width: 600px) {
     .hero {
       align-items: flex-start;
       padding-top: var(--s-12);
     }
 
-    .hero-watermark {
-      font-size: 60vw;
+    .countdown {
+      gap: var(--s-4);
+    }
+
+    .countdown-unit {
+      min-width: 2.75rem;
+    }
+
+    .countdown-number {
+      font-size: var(--t-xl);
     }
   }
 </style>
