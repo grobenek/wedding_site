@@ -64,7 +64,6 @@ import Layout from '../../layouts/Layout.astro';
         </div>
       </fieldset>
 
-      <!-- +1 — shown only if QR code has p=1 -->
       <div class="field conditional" id="plus-one-field" hidden>
         <fieldset>
           <legend class="field-legend">Prídete s partnerom / partnerkou?</legend>
@@ -81,7 +80,6 @@ import Layout from '../../layouts/Layout.astro';
         </fieldset>
       </div>
 
-      <!-- Night stay — shown only if QR code has n=1 AND attending = yes -->
       <div class="field conditional" id="night-field" hidden>
         <fieldset>
           <legend class="field-legend">Zostanete cez noc?</legend>
@@ -134,15 +132,14 @@ import Layout from '../../layouts/Layout.astro';
 
     const rawToken = params.get('id') || 'direct';
     tokenInput.value = rawToken;
-
-    if (rawToken === 'direct') {
+    const isTokenPresent = rawToken !== 'direct';
+    if (!isTokenPresent) {
       document.getElementById('no-token-notice').hidden = false;
     }
 
     const rawName = params.get('name');
     if (rawName) nameInput.value = decodeURIComponent(rawName);
 
-    // Strictly check for "1"
     const allowPlusOne = params.get('p') === '1';
     const allowNight   = params.get('n') === '1';
 
@@ -154,13 +151,19 @@ import Layout from '../../layouts/Layout.astro';
       const checkedAttending = form.querySelector('input[name="attending"]:checked');
       const isYes = checkedAttending ? checkedAttending.value === 'yes' : false;
 
-      // Only show if BOTH the URL parameter is true AND they selected "Yes"
-      plusOneField.hidden = !(allowPlusOne && isYes);
-      nightField.hidden   = !(allowNight && isYes);
+      // No token: show both fields whenever attending = yes, ignoring p/n params entirely.
+      // With a token: only show if the URL param explicitly allowed it AND attending = yes.
+      const showPlusOne = isTokenPresent ? (allowPlusOne && isYes) : isYes;
+      const showNight   = isTokenPresent ? (allowNight && isYes)   : isYes;
 
-      // Clear sub-selections when hiding
-      if (!isYes) {
+      plusOneField.hidden = !showPlusOne;
+      nightField.hidden   = !showNight;
+
+      // Clear sub-selections when hiding (checked independently per field)
+      if (plusOneField.hidden) {
         plusOneField.querySelectorAll('input').forEach(i => i.checked = false);
+      }
+      if (nightField.hidden) {
         nightField.querySelectorAll('input').forEach(i => i.checked = false);
       }
     }
@@ -234,7 +237,11 @@ import Layout from '../../layouts/Layout.astro';
     font-size: var(--t-sm);
     color: var(--c-muted);
     line-height: 1.6;
-    margin-bottom: var(--s-8);
+    margin-bottom: var(--s-10);
+  }
+
+  #rsvp-form {
+    margin-top: var(--s-4);
   }
 
   .field-hint {
