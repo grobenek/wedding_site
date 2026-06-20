@@ -16,6 +16,10 @@ import Layout from '../../layouts/Layout.astro';
       Prosíme o potvrdenie Vašej účasti do <strong>1. februára 2026</strong>.
     </p>
 
+    <p id="no-token-notice" class="form-notice" hidden>
+      Nepoznáme vás z QR kódu. Uistite sa prosím, že ste zadali správne meno (alebo meno rodiny/všetkých členov), aby sme vašu odpoveď vedeli správne priradiť. Ak máte problém, napíšte nám na <a class="email-link" href="mailto:peter.szathmary@szathmary.sk">peter.szathmary@szathmary.sk</a>.
+    </p>
+
     <form id="rsvp-form" novalidate>
       <!-- Web3Forms required field -->
       <input type="hidden" name="access_key" value={WEB3FORMS_KEY} />
@@ -128,7 +132,13 @@ import Layout from '../../layouts/Layout.astro';
     const nameInput  = document.getElementById('name');
     const form       = document.getElementById('rsvp-form');
 
-    tokenInput.value = params.get('id') || 'direct';
+    const rawToken = params.get('id') || 'direct';
+    tokenInput.value = rawToken;
+
+    if (rawToken === 'direct') {
+      document.getElementById('no-token-notice').hidden = false;
+    }
+
     const rawName = params.get('name');
     if (rawName) nameInput.value = decodeURIComponent(rawName);
 
@@ -216,6 +226,17 @@ import Layout from '../../layouts/Layout.astro';
     line-height: 1.7;
   }
 
+  .form-notice {
+    background: var(--c-surface-alt, rgba(0, 0, 0, 0.04));
+    border-left: 3px solid var(--c-accent);
+    padding: var(--s-3) var(--s-4);
+    border-radius: 4px;
+    font-size: var(--t-sm);
+    color: var(--c-muted);
+    line-height: 1.6;
+    margin-bottom: var(--s-8);
+  }
+
   .field-hint {
     font-size: var(--t-sm);
     color: var(--c-muted);
@@ -232,6 +253,12 @@ import Layout from '../../layouts/Layout.astro';
 
   .form-actions {
     margin-top: var(--s-8);
+  }
+
+  .email-link {
+    color: var(--c-accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   /* Smooth reveal for conditional fields */
