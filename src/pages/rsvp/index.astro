@@ -13,11 +13,11 @@ import Layout from '../../layouts/Layout.astro';
     <h1 class="page-title">RSVP</h1>
 
     <p class="rsvp-intro">
-      Prosíme o potvrdenie Vašej účasti do <strong>1. februára 2026</strong>.
+      Prosíme o potvrdenie Vašej účasti do <strong>1. februára 2027</strong>.
     </p>
 
     <p id="no-token-notice" class="form-notice" hidden>
-      Nepoznáme vás z QR kódu. Uistite sa prosím, že ste zadali správne meno (alebo meno rodiny/všetkých členov), aby sme vašu odpoveď vedeli správne priradiť. Ak máte problém, napíšte nám na <a class="email-link" href="mailto:peter.szathmary@szathmary.sk">peter.szathmary@szathmary.sk</a>.
+      Nepoznáme vás z QR kódu. Do poľa nižšie prosím vypíšte mená všetkých, ktorí prídu (oddelené čiarkou), aby sme vašu odpoveď vedeli správne priradiť. Ak máte problém, napíšte nám na <a class="email-link" href="mailto:peter.szathmary@szathmary.sk">peter.szathmary@szathmary.sk</a>.
     </p>
 
     <form id="rsvp-form" novalidate>
@@ -36,16 +36,15 @@ import Layout from '../../layouts/Layout.astro';
       <!-- Hidden: tracking token from QR code -->
       <input type="hidden" name="token" id="token" value="direct" />
 
-      <!-- Name -->
-      <div class="field">
-        <label for="name">Vaše meno</label>
+      <!-- Guests: free-text fallback when no known guest list (no token / no-guests param) -->
+      <div class="field conditional" id="name-field">
+        <label for="name">Vaše meno (a mená ďalších, ak prídete viacerí)</label>
         <input
           type="text"
           id="name"
           name="name"
-          required
           autocomplete="name"
-          placeholder="Jana Nováková"
+          placeholder="Jana Nováková, Peter Novák"
         />
       </div>
 
@@ -64,21 +63,11 @@ import Layout from '../../layouts/Layout.astro';
         </div>
       </fieldset>
 
-      <div class="field conditional" id="plus-one-field" hidden>
-        <fieldset>
-          <legend class="field-legend">Prídete s partnerom / partnerkou?</legend>
-          <div class="radio-group">
-            <label class="radio-label">
-              <input type="radio" name="plus_one" value="yes" />
-              Áno
-            </label>
-            <label class="radio-label">
-              <input type="radio" name="plus_one" value="no" />
-              Nie
-            </label>
-          </div>
-        </fieldset>
-      </div>
+      <!-- Guests: checkbox list when invited via QR with known names — shown once attending = yes -->
+      <fieldset class="field conditional" id="guests-field" hidden>
+        <legend class="field-legend">Kto z vás príde?</legend>
+        <div class="radio-group" id="guests-checklist"></div>
+      </fieldset>
 
       <div class="field conditional" id="night-field" hidden>
         <fieldset>
@@ -86,14 +75,19 @@ import Layout from '../../layouts/Layout.astro';
           <p class="field-hint">Ubytovanie je k dispozícii priamo na mieste</p>
           <div class="radio-group">
             <label class="radio-label">
-              <input type="radio" name="night" value="yes" />
-              Áno, zostanem cez noc
+              <input type="radio" name="night_yn" id="night-yes" value="yes" />
+              Áno, zostaneme cez noc
             </label>
             <label class="radio-label">
-              <input type="radio" name="night" value="no" />
+              <input type="radio" name="night_yn" id="night-no" value="no" />
               Nie, ďakujem
             </label>
           </div>
+        </fieldset>
+
+        <fieldset class="conditional" id="night-checklist-fieldset" hidden>
+          <legend class="field-legend">Kto z vás zostane cez noc?</legend>
+          <div class="radio-group" id="night-checklist"></div>
         </fieldset>
       </div>
 
@@ -137,34 +131,114 @@ import Layout from '../../layouts/Layout.astro';
       document.getElementById('no-token-notice').hidden = false;
     }
 
-    const rawName = params.get('name');
-    if (rawName) nameInput.value = decodeURIComponent(rawName);
+    // ── Guests: parse "guests" param into a named checkbox list ────
+    const rawGuests = params.get('guests');
+    const guestNames = rawGuests
+      ? decodeURIComponent(rawGuests).split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+    const hasGuestList = guestNames.length > 0;
 
-    const allowPlusOne = params.get('p') === '1';
-    const allowNight   = params.get('n') === '1';
+    const guestsField     = document.getElementById('guests-field');
+    const guestsChecklist = document.getElementById('guests-checklist');
+    const nameField       = document.getElementById('name-field');
 
-    const plusOneField = document.getElementById('plus-one-field');
-    const nightField   = document.getElementById('night-field');
+    if (hasGuestList) {
+      // Checkbox-list mode: known household, render one checkbox per guest.
+      guestNames.forEach((guestName, i) => {
+        const id = `guest-${i}`;
+        const label = document.createElement('label');
+        label.className = 'radio-label';
+        label.innerHTML = `<input type="checkbox" id="${id}" data-guest-name="${guestName.replace(/"/g, '&quot;')}" /> ${guestName}`;
+        guestsChecklist.appendChild(label);
+      });
+      guestsField.hidden = true; // revealed once attending = yes (see updateConditionalFields)
+      nameField.hidden = true;
+      nameInput.removeAttribute('required');
+    } else {
+      // Free-text fallback: no known guest list (no token, or token without guests param).
+      nameField.hidden = false;
+      nameInput.setAttribute('required', '');
+
+      // Backward-compat: still honor a plain "name" param to pre-fill the free-text field.
+      const rawName = params.get('name');
+      if (rawName) nameInput.value = decodeURIComponent(rawName);
+    }
+
+    const allowNight = params.get('n') === '1';
+    const nightField           = document.getElementById('night-field');
+    const nightChecklistFs     = document.getElementById('night-checklist-fieldset');
+    const nightChecklist       = document.getElementById('night-checklist');
+    const nightYesRadio        = document.getElementById('night-yes');
+    const nightNoRadio         = document.getElementById('night-no');
+
+    // ── Rebuild the night-stay checklist from the currently attending guests ──
+    function rebuildNightChecklist() {
+      if (!hasGuestList) return;
+      const attendingNames = Array.from(guestsChecklist.querySelectorAll('input:checked'))
+        .map(i => i.dataset.guestName);
+
+      // Preserve existing night selections across rebuilds (for names still attending)
+      const previouslyChecked = new Set(
+        Array.from(nightChecklist.querySelectorAll('input:checked')).map(i => i.dataset.guestName)
+      );
+      const hasExistingState = nightChecklist.querySelectorAll('input').length > 0;
+
+      nightChecklist.innerHTML = '';
+      attendingNames.forEach((guestName, i) => {
+        const label = document.createElement('label');
+        label.className = 'radio-label';
+        const wasChecked = hasExistingState
+          ? previouslyChecked.has(guestName)
+          : true; // default: everyone currently attending is checked on first render
+        const checkedAttr = wasChecked ? 'checked' : '';
+        label.innerHTML = `<input type="checkbox" id="night-guest-${i}" data-guest-name="${guestName.replace(/"/g, '&quot;')}" ${checkedAttr} /> ${guestName}`;
+        nightChecklist.appendChild(label);
+      });
+    }
+
+    // ── Show/hide the names checklist based on the yes/no night answer ────
+    function updateNightChecklist() {
+      if (!hasGuestList) return;
+      const showChecklist = nightYesRadio.checked;
+      nightChecklistFs.hidden = !showChecklist;
+      if (showChecklist) {
+        rebuildNightChecklist();
+      } else {
+        nightChecklist.querySelectorAll('input').forEach(i => i.checked = false);
+      }
+    }
+
+    if (hasGuestList) {
+      nightYesRadio.addEventListener('change', updateNightChecklist);
+      nightNoRadio.addEventListener('change', updateNightChecklist);
+
+      // Keep the night checklist in sync whenever attending-guest checkboxes change,
+      // so unchecking someone from attending also drops them from overnight stay.
+      guestsChecklist.addEventListener('change', () => {
+        if (!nightChecklistFs.hidden) rebuildNightChecklist();
+      });
+    }
 
     // ── Show/hide conditional fields based on attending ────
     function updateConditionalFields() {
       const checkedAttending = form.querySelector('input[name="attending"]:checked');
       const isYes = checkedAttending ? checkedAttending.value === 'yes' : false;
 
-      // No token: show both fields whenever attending = yes, ignoring p/n params entirely.
-      // With a token: only show if the URL param explicitly allowed it AND attending = yes.
-      const showPlusOne = isTokenPresent ? (allowPlusOne && isYes) : isYes;
-      const showNight   = isTokenPresent ? (allowNight && isYes)   : isYes;
-
-      plusOneField.hidden = !showPlusOne;
-      nightField.hidden   = !showNight;
-
-      // Clear sub-selections when hiding (checked independently per field)
-      if (plusOneField.hidden) {
-        plusOneField.querySelectorAll('input').forEach(i => i.checked = false);
+      if (hasGuestList) {
+        guestsField.hidden = !isYes;
+        if (guestsField.hidden) {
+          guestsChecklist.querySelectorAll('input').forEach(i => i.checked = false);
+        }
       }
+
+      // No token: show night field whenever attending = yes, ignoring n param entirely.
+      // With a token: only show if the URL param explicitly allowed it AND attending = yes.
+      const showNight = isTokenPresent ? (allowNight && isYes) : isYes;
+      nightField.hidden = !showNight;
+
       if (nightField.hidden) {
         nightField.querySelectorAll('input').forEach(i => i.checked = false);
+        if (hasGuestList) nightChecklistFs.hidden = true;
       }
     }
 
@@ -183,10 +257,39 @@ import Layout from '../../layouts/Layout.astro';
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const name      = document.getElementById('name').value.trim();
       const attending = form.querySelector('input[name="attending"]:checked');
+      if (!attending) return;
 
-      if (!name || !attending) return;
+      const attendingYes = attending.value === 'yes';
+
+      let attendeesValue = '';
+      if (hasGuestList) {
+        const checked = Array.from(guestsChecklist.querySelectorAll('input:checked'))
+          .map(i => i.dataset.guestName);
+        // Require at least one selected guest when attending = yes.
+        if (attendingYes && checked.length === 0) return;
+        attendeesValue = checked.join(', ');
+      } else {
+        attendeesValue = nameInput.value.trim();
+        if (!attendeesValue) return;
+      }
+
+      let nightValue = '';
+      if (!nightField.hidden) {
+        if (hasGuestList) {
+          const nightAnswer = form.querySelector('input[name="night_yn"]:checked');
+          if (nightAnswer && nightAnswer.value === 'yes') {
+            const nightChecked = Array.from(nightChecklist.querySelectorAll('input:checked'))
+              .map(i => i.dataset.guestName);
+            nightValue = nightChecked.join(', ');
+          } else if (nightAnswer && nightAnswer.value === 'no') {
+            nightValue = 'no';
+          }
+        } else {
+          const nightAnswer = form.querySelector('input[name="night_yn"]:checked');
+          nightValue = nightAnswer ? nightAnswer.value : '';
+        }
+      }
 
       submitBtn.disabled    = true;
       submitBtn.textContent = 'Odosielam…';
@@ -195,6 +298,8 @@ import Layout from '../../layouts/Layout.astro';
       try {
         const formData = new FormData(form);
         const object   = Object.fromEntries(formData);
+        object.name    = attendeesValue; // unify both modes into a single "name" field for the email
+        object.night   = nightValue; // radio renamed to night_yn, so this is set explicitly here
         const json     = JSON.stringify(object);
 
         const res = await fetch('https://api.web3forms.com/submit', {
@@ -268,7 +373,6 @@ import Layout from '../../layouts/Layout.astro';
     text-underline-offset: 3px;
   }
 
-  /* Smooth reveal for conditional fields */
   .conditional {
     overflow: hidden;
   }

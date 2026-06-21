@@ -3,50 +3,52 @@
    ============================================================ */
 :root {
   /* Palette */
-  --c-bg:       #F9F7F4;
-  --c-text:     #1E1C1A;
-  --c-muted:    #6A6460;
-  --c-accent:   #8C7B5E;
-  --c-rule:     #DDD8D0;
-  --c-white:    #FFFFFF;
-  --c-surface:  #F2EFE9;
-  --c-error:    #9B2335;
+  --c-bg: #f9f7f4;
+  --c-text: #1e1c1a;
+  --c-muted: #6a6460;
+  --c-accent: #8c7b5e;
+  --c-rule: #ddd8d0;
+  --c-white: #ffffff;
+  --c-surface: #f2efe9;
+  --c-error: #9b2335;
 
   /* Fonts */
-  --f-display: 'Fraunces', Georgia, serif;
-  --f-body:    'Figtree', system-ui, sans-serif;
+  --f-display: "Fraunces", Georgia, serif;
+  --f-body: "Figtree", system-ui, sans-serif;
 
   /* Type scale */
-  --t-xs:   0.75rem;
-  --t-sm:   0.875rem;
+  --t-xs: 0.75rem;
+  --t-sm: 0.875rem;
   --t-base: 1rem;
-  --t-lg:   1.125rem;
-  --t-xl:   1.375rem;
-  --t-2xl:  1.75rem;
-  --t-3xl:  2.25rem;
+  --t-lg: 1.125rem;
+  --t-xl: 1.375rem;
+  --t-2xl: 1.75rem;
+  --t-3xl: 2.25rem;
   --t-hero: clamp(2.75rem, 7vw, 5rem);
   --t-date: clamp(1rem, 2.5vw, 1.375rem);
 
   /* Spacing */
-  --s-1:  0.25rem;
-  --s-2:  0.5rem;
-  --s-3:  0.75rem;
-  --s-4:  1rem;
-  --s-6:  1.5rem;
-  --s-8:  2rem;
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-6: 1.5rem;
+  --s-8: 2rem;
   --s-12: 3rem;
   --s-16: 4rem;
   --s-24: 6rem;
 
   /* Layout */
   --w-content: 640px;
-  --w-wide:    900px;
+  --w-wide: 900px;
 }
 
 /* ============================================================
    RESET & BASE
    ============================================================ */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -200,7 +202,9 @@ main {
   cursor: pointer;
   background: transparent;
   color: var(--c-text);
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
 }
 
 .btn:hover {
@@ -279,7 +283,7 @@ main {
   display: flex;
   align-items: center;
   gap: var(--s-3);
-  margin-left: 1rem; 
+  margin-left: 1rem;
   cursor: pointer;
   font-size: var(--t-base);
   color: var(--c-text);
@@ -294,6 +298,16 @@ main {
   accent-color: var(--c-accent);
   cursor: pointer;
   flex-shrink: 0;
+}
+
+fieldset {
+  border: 1px solid var(--c-rule);
+  padding: var(--s-3);
+  margin: 0;
+}
+
+legend {
+  padding: 0 var(--s-2);
 }
 
 /* ============================================================
